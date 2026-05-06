@@ -1,0 +1,22 @@
+.nav-pills .nav-link {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    background-color: var(--bs-secondary-bg, #e9ecef);
+    color: var(--bs-secondary, #6c757d);
+    border: none;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .nav-pills .nav-link.active {
+    background-color: var(--bs-primary, #696cff);
+    color: #fff;
+  }
+  .nav-pills .nav-link.activeComplete {
+    background-color: var(--bs-success, #71dd37);
+    color: #fff;
+  }

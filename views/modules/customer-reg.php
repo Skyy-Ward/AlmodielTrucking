@@ -208,7 +208,7 @@
   </div>
 </div>
 
-<style>
+<!-- <style>
   .nav-pills .nav-link {
     width: 36px;
     height: 36px;
@@ -231,7 +231,7 @@
     background-color: var(--bs-success, #71dd37);
     color: #fff;
   }
-</style>
+</style> -->
 
 <!-- <script>
   const stepTitles = {

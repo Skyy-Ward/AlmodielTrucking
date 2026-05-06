@@ -27,6 +27,14 @@
   <!-- App Css-->
   <link href="views/assets/css/app.min.css" id="app-style" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="views/assets/libs/choices.js/public/assets/styles/choices.min.css">
+
+  <!-- MY CSS -->
+  <link rel="stylesheet" href="views/css/stepper.css">
+  <!-- <link rel="stylesheet" href="views/css/datepicker.css"> -->
+
+  <!-- DATE PICKER -->
+  <link rel="stylesheet" href="views/assets/libs/air-datepicker/air-datepicker.css">
+
   <script src="views/assets/js/jquery-4.0.0.min.js"></script>
   <style>
     .layout-container {
@@ -106,6 +114,7 @@
 
 <!-- DATE PICKER -->
 <script src="views/assets/libs/air-datepicker/air-datepicker.js"></script>
+<!-- <script src="views/assets/js/ui/air-datepicker.init.js"></script> -->
 
 <!-- LIBS -->
 <script src="views/assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
@@ -122,13 +131,19 @@
 <script src="views/assets/js/form/forms-select.init.js"></script>
 <script src="views/assets/js/form/stepper.init.js"></script>
 
+<!-- SWEET ALERT -->
+ <script src="views/assets/libs/sweetalert2/sweetalert2.all.min.js"></script>
+ <script src="views/assets/js/ui/sweetalert.init.js"></script>
+
+
 
 
 
 <?php
   if (isset($route)) {
     $routeScripts = [
-      "customer-reg" => ["customer-reg.js"]
+      "customer-reg" => ["customer-reg.js"],
+      "employee-reg" => ["employee-reg.js"]
     ];
 
     if (array_key_exists($route, $routeScripts)) {
