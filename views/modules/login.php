@@ -67,14 +67,11 @@
                 $login = new ControllerUserRights();
                 $login -> ctrUserLogin();
               ?>
-              <button type="button" class="btn btn-outline-light w-100 d-flex align-items-center gap-2 justify-content-center text-muted">
-                <img src="views/assets/images/google.png" alt="Google Logo" class="h-20px w-20px">Sign in with Google
-              </button>
             </div>
 
             
           </form>
-          <p class="text-center mt-6 mb-0 text-muted fs-13">Don't have an account? <a href="auth-signup.html" class="link fw-semibold">Sign up here</a></p>
+          <p class="text-center mt-6 mb-0 text-muted fs-13">Don't have an account? <a href="customer-reg" class="link fw-semibold">Sign up here</a></p>
         </div>
       </div>
       <p class="position-relative text-center fs-13 mb-0">©
