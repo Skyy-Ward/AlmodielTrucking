@@ -11,6 +11,7 @@ class EmployeeRegistration {
   public $empPhoneNumber;
   public $empEmail;
   public $empType;
+  public $empPassword;
   public $empStatus = 'active'; // auto set on registration
 
   public function saveEmployee() {
@@ -23,6 +24,7 @@ class EmployeeRegistration {
       "empPhoneNumber" => $this->empPhoneNumber,
       "empEmail"       => $this->empEmail,
       "empType"        => $this->empType,
+      "empPassword"    => password_hash($this->empPassword, PASSWORD_DEFAULT),
       "empStatus"      => $this->empStatus,
     );
 
@@ -41,5 +43,6 @@ $save_employee->empBirthDate   = $_POST["empBirthDate"];
 $save_employee->empPhoneNumber = $_POST["empPhoneNumber"];
 $save_employee->empEmail       = $_POST["empEmail"];
 $save_employee->empType        = $_POST["empType"];
+$save_employee->empPassword    = $_POST["empPassword"];
 
 $save_employee->saveEmployee();

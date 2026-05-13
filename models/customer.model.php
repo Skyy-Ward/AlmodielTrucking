@@ -62,6 +62,7 @@ class ModelCustomer {
           street,
           houseNumber,
           companyDocument,
+          password,
           dateRegistered,
           status
         ) VALUES (
@@ -78,6 +79,7 @@ class ModelCustomer {
           :street,
           :houseNumber,
           :companyDocument,
+          :password,
           CURRENT_DATE,
           'active'
         )
@@ -97,6 +99,7 @@ class ModelCustomer {
       $stmt->bindParam(":street", $data["street"], PDO::PARAM_STR);
       $stmt->bindParam(":houseNumber", $data["houseNumber"], PDO::PARAM_STR);
       $stmt->bindParam(":companyDocument", $companyDoc, PDO::PARAM_STR);
+      $stmt->bindParam(":password", $data["password"], PDO::PARAM_STR);
 
       $stmt->execute();
 

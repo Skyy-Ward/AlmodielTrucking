@@ -21,6 +21,7 @@ class ModelEmployee {
           empPhoneNumber,
           empEmail,
           empType,
+          empPassword,
           empStatus,
           dateCreated
         ) VALUES (
@@ -32,6 +33,7 @@ class ModelEmployee {
           :empPhoneNumber,
           :empEmail,
           :empType,
+          :empPassword,
           'active',
           NOW()
         )
@@ -45,6 +47,7 @@ class ModelEmployee {
       $stmt->bindParam(':empPhoneNumber', $data['empPhoneNumber'], PDO::PARAM_STR);
       $stmt->bindParam(':empEmail',       $data['empEmail'],       PDO::PARAM_STR);
       $stmt->bindParam(':empType',        $data['empType'],        PDO::PARAM_STR);
+      $stmt->bindParam(':empPassword',    $data['empPassword'],    PDO::PARAM_STR);
 
       $stmt->execute();
       $pdo->commit();

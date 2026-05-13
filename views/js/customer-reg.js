@@ -1,107 +1,198 @@
 $(document).ready(function () {
 
-  const stepTitles = {
-    1: 'Step 1: Customer Type',
-    2: 'Step 2: Personal Information',
-    3: 'Step 3: Address',
-    4: 'Step 4: Company Documents'
-  };
-
   function getCustomerType() {
-    return $('input[name="customerType"]:checked').val();
+    return $('#customerType').val();
   }
 
-  function getTotalSteps() {
-    return getCustomerType() === 'company' ? 4 : 3;
+  function applyCustomerType() {
+    const type = getCustomerType();
+    const isCompany = type === 'company';
+
+    $('.cust-type-tile').removeClass('active');
+    $('.cust-type-tile[data-type="' + type + '"]').addClass('active');
+
+    $('#custTypeBadge').html(
+      isCompany
+        ? '<i class="ri-building-2-line me-1"></i> Company'
+        : '<i class="ri-user-line me-1"></i> Individual'
+    );
+
+    $('#individualForm').toggleClass('d-none', isCompany);
+    $('#companyForm').toggleClass('d-none', !isCompany);
   }
 
-  function onCustomerTypeChange() {
-    const isCompany = getCustomerType() === 'company';
-    $('#navStep4').toggleClass('d-none', !isCompany);
-    syncStepperTabs();
-  }
-
-  function applyCustomerTypeFields() {
-    const isCompany = getCustomerType() === 'company';
-    $('#sectionPersonalLabel').text(isCompany ? 'Company Information' : 'Personal Information');
-    $('#fieldCompanyName').toggleClass('d-none', !isCompany);
-    $('#fieldIndividualName').toggleClass('d-none', isCompany);
-    $('#fieldContactPerson').toggleClass('d-none', !isCompany);
-    stepTitles[2] = isCompany ? 'Step 2: Company Information' : 'Step 2: Personal Information';
-  }
-
-  function syncStepperTabs() {
-    const isCompany = getCustomerType() === 'company';
-    const $step4 = $('#step-4');
-    if (isCompany) {
-      $step4.removeAttr('data-hidden').css('display', '');
-    } else {
-      $step4.attr('data-hidden', 'true').css('display', 'none');
-    }
-  }
-
-  // Patch: update step title after stepper navigates
-  const stepper = document.querySelector('.stepper');
-  const observer = new MutationObserver(() => {
-    $('.tab-pane').each(function (index) {
-      if ($(this).hasClass('active')) {
-        const stepNum = index + 1;
-        $('#stepTitle').text(stepTitles[stepNum] || '');
-        if (stepNum === 2) applyCustomerTypeFields();
-        const total = getTotalSteps();
-        $('#btnBack').css('visibility', stepNum === 1 ? 'hidden' : 'visible');
-
-        // Bind register on last step
-        if (stepNum === total) {
-          $('#btnNext').text('Register').off('click.register').on('click.register', function () {
-            saveCustomer();
-          });
-        } else {
-          $('#btnNext').text('Next').off('click.register');
-        }
-      }
-    });
+  // Tile click → set hidden value + repaint
+  $(document).on('click', '.cust-type-tile', function () {
+    $('#customerType').val($(this).data('type'));
+    applyCustomerType();
   });
 
-  observer.observe(stepper, { attributes: true, subtree: true, attributeFilter: ['class'] });
+  // Reset
+  $(document).on('click', '#btnResetCustomer', function () {
+    $('#individualForm input, #companyForm input').val('');
+    $('#custPassword, #custPasswordConfirm').val('');
+    $('.is-invalid').removeClass('is-invalid');
+    $('#customerType').val('individual');
+    applyCustomerType();
+  });
 
-  // Bind radio change
-  $('input[name="customerType"]').on('change', onCustomerTypeChange);
+  // Show/hide password
+  $(document).on('click', '#toggleCustPassword', function () {
+    const $pwd = $('#custPassword');
+    const isHidden = $pwd.attr('type') === 'password';
+    $pwd.attr('type', isHidden ? 'text' : 'password');
+    $(this).find('i').toggleClass('ri-eye-line', !isHidden).toggleClass('ri-eye-off-line', isHidden);
+  });
+
+  // Register
+  $(document).on('click', '#btnRegisterCustomer', function () {
+    const missing = validateInputs();
+    if (missing.length > 0) {
+      showMissingModal(missing);
+      return;
+    }
+    showConfirmModal();
+  });
+
+  function showConfirmModal() {
+    const isCompany = getCustomerType() === 'company';
+    const typeLabel = isCompany ? 'Company' : 'Individual';
+    const name = isCompany
+      ? $('#companyName').val()
+      : ($('#firstName').val() + ' ' + $('#lastName').val());
+
+    Swal.fire({
+      icon: 'question',
+      title: 'Confirm Registration',
+      html:
+        '<p class="mb-2">Please review the details before submitting:</p>' +
+        '<div class="text-start bg-light rounded p-3">' +
+          '<div><strong>Type:</strong> ' + typeLabel + '</div>' +
+          '<div><strong>Name:</strong> ' + (name.trim() || '—') + '</div>' +
+        '</div>',
+      showCancelButton: true,
+      confirmButtonText: '<i class="ri-check-line"></i> Yes, Register',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#696cff',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        saveCustomer();
+      }
+    });
+  }
 
   // Init
-  syncStepperTabs();
-  $('#btnBack').css('visibility', 'hidden');
+  applyCustomerType();
 
-  function saveCustomer() {
+
+  // ===== Validation =====
+  function validateInputs() {
     const isCompany = getCustomerType() === 'company';
+    const missing = [];
 
-    const formData = new FormData();
-    formData.append('customerType', getCustomerType());
+    const check = (id, label) => {
+      const $el = $('#' + id);
+      const el = $el[0];
+      if (!el) return;
+      const isFile = el.type === 'file';
+      const ok = isFile ? el.files.length > 0 : String($el.val() || '').trim() !== '';
+      if (!ok) {
+        missing.push(label);
+        $el.addClass('is-invalid');
+      } else {
+        $el.removeClass('is-invalid');
+      }
+    };
 
     if (isCompany) {
-      formData.append('companyName', $('#companyName').val());
-      formData.append('contactPerson', $('#contactPerson').val());
+      check('companyName',   'Company Name');
+      check('contactPerson', 'Contact Person');
+      check('emailCorp',     'Business Email');
+      check('phoneCorp',     'Business Phone');
+      check('provinceCorp',  'Province');
+      check('cityCorp',      'City / Municipality');
+      check('barangayCorp',  'Barangay');
+      check('businessDoc',   'Business Registration Document');
     } else {
-      formData.append('firstName', $('#firstName').val());
-      formData.append('lastName', $('#lastName').val());
-      formData.append('middleInitial', $('#middleInitial').val());
+      check('firstName',     'First Name');
+      check('lastName',      'Last Name');
+      check('phoneIndiv',    'Phone Number');
+      check('provinceIndiv', 'Province');
+      check('cityIndiv',     'City / Municipality');
+      check('barangayIndiv', 'Barangay');
     }
 
-    formData.append('email', $('#email').val());
-    formData.append('phoneNumber', $('#phoneNumber').val());
-    formData.append('province', $('#province').val());
-    formData.append('city', $('#city').val());
-    formData.append('barangay', $('#barangay').val());
-    formData.append('street', $('#street').val());
-    formData.append('houseNumber', $('#houseNumber').val());
+    // Shared password fields
+    check('custPassword',        'Password');
+    check('custPasswordConfirm', 'Confirm Password');
+
+    const pwd     = String($('#custPassword').val() || '');
+    const pwdConf = String($('#custPasswordConfirm').val() || '');
+
+    if (pwd && pwd.length < 6) {
+      missing.push('Password (must be at least 6 characters)');
+      $('#custPassword').addClass('is-invalid');
+    }
+    if (pwd && pwdConf && pwd !== pwdConf) {
+      missing.push('Password and Confirm Password must match');
+      $('#custPassword, #custPasswordConfirm').addClass('is-invalid');
+    }
+
+    return missing;
+  }
+
+  function showMissingModal(missing) {
+    const listHtml = '<ul class="text-start mb-0 ps-3">' +
+      missing.map(m => '<li>' + m + '</li>').join('') +
+      '</ul>';
+
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Required Fields',
+      html: '<p class="text-muted mb-2">Please fill in the following fields:</p>' + listHtml,
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#696cff'
+    });
+  }
+
+
+  // ===== Save =====
+  function saveCustomer() {
+    const isCompany = getCustomerType() === 'company';
+    const formData = new FormData();
+    formData.append('customerType', getCustomerType());
+    formData.append('password',     $('#custPassword').val());
 
     if (isCompany) {
+      formData.append('companyName',   $('#companyName').val());
+      formData.append('contactPerson', $('#contactPerson').val());
+      formData.append('email',         $('#emailCorp').val());
+      formData.append('phoneNumber',   $('#phoneCorp').val());
+      formData.append('province',      $('#provinceCorp').val());
+      formData.append('city',          $('#cityCorp').val());
+      formData.append('barangay',      $('#barangayCorp').val());
+      formData.append('street',        $('#streetCorp').val());
+      formData.append('houseNumber',   $('#houseCorp').val());
+
       const bizDoc = $('#businessDoc')[0].files[0];
       const otherDocs = $('#otherDocs')[0].files;
       if (bizDoc) formData.append('businessDoc', bizDoc);
       for (let i = 0; i < otherDocs.length; i++) {
         formData.append('otherDocs[]', otherDocs[i]);
       }
+    } else {
+      formData.append('firstName',     $('#firstName').val());
+      formData.append('lastName',      $('#lastName').val());
+      formData.append('middleInitial', $('#middleInitial').val());
+      formData.append('email',         $('#emailIndiv').val());
+      formData.append('phoneNumber',   $('#phoneIndiv').val());
+      formData.append('province',      $('#provinceIndiv').val());
+      formData.append('city',          $('#cityIndiv').val());
+      formData.append('barangay',      $('#barangayIndiv').val());
+      formData.append('street',        $('#streetIndiv').val());
+      formData.append('houseNumber',   $('#houseIndiv').val());
     }
 
     $.ajax({
@@ -113,23 +204,37 @@ $(document).ready(function () {
       processData: false,
       dataType: 'text',
       success: function (response) {
-        console.log('Success:', response);
-
-        if (response.trim() === 'success') {
-          alert('Customer registered successfully!');
-          
-          setTimeout(() => {
-            location.reload();
-          }, 1000); // small delay for UX
-        } else if (response.trim() === 'existing') {
-          alert('Customer already exists!');
+        const res = response.trim();
+        if (res === 'success') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Registered!',
+            text: 'Customer registered successfully.',
+            confirmButtonColor: '#696cff'
+          }).then(() => location.reload());
+        } else if (res === 'existing') {
+          Swal.fire({
+            icon: 'info',
+            title: 'Already Exists',
+            text: 'This customer already exists.',
+            confirmButtonColor: '#696cff'
+          });
         } else {
-          alert('Error saving customer.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to save customer.',
+            confirmButtonColor: '#696cff'
+          });
         }
       },
       error: function () {
-        console.error('Something went wrong.');
-        // handle error
+        Swal.fire({
+          icon: 'error',
+          title: 'Network Error',
+          text: 'Something went wrong while saving.',
+          confirmButtonColor: '#696cff'
+        });
       }
     });
   }

@@ -1,58 +1,164 @@
 $(document).ready(function () {
 
-  new AirDatepicker('#empBirthDate', {
-    dateFormat: 'yyyy-MM-dd',
-    autoClose: true,
-    isMobile: true,
-    fixedHeight: true,
-    locale: {
-      days: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-      daysShort: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-      daysMin: ['Su','Mo','Tu','We','Th','Fr','Sa'],
-      months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-      monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-      today: 'Today',
-      clear: 'Clear',
-      dateFormat: 'yyyy-MM-dd',
-      timeFormat: 'HH:mm',
-      firstDay: 0
-    }
-    });
-
-  const stepTitles = {
-    1: 'Step 1: Employment Type',
-    2: 'Step 2: Personal Information',
-    3: 'Step 3: Contact Information'
-  };
-
-  const stepper = document.querySelector('.stepper');
-
-  if (stepper) {
-    const observer = new MutationObserver(() => {
-      $('.tab-pane').each(function (index) {
-        if ($(this).hasClass('active')) {
-          const stepNum = index + 1;
-          const total = 3;
-
-          $('#empStepTitle').text(stepTitles[stepNum] || '');
-          $('#empBtnBack').css('visibility', stepNum === 1 ? 'hidden' : 'visible');
-
-          if (stepNum === total) {
-            $('#empBtnNext').text('Register').off('click.register').on('click.register', function () {
-              saveEmployee();
-            });
-          } else {
-            $('#empBtnNext').text('Next').off('click.register');
-          }
+  // Date picker (guarded so a failure here doesn't kill the rest of the script)
+  try {
+    if (typeof AirDatepicker !== 'undefined' && document.getElementById('empBirthDate')) {
+      new AirDatepicker('#empBirthDate', {
+        dateFormat: 'yyyy-MM-dd',
+        autoClose: true,
+        isMobile: true,
+        fixedHeight: true,
+        locale: {
+          days: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+          daysShort: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+          daysMin: ['Su','Mo','Tu','We','Th','Fr','Sa'],
+          months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+          monthsShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+          today: 'Today',
+          clear: 'Clear',
+          dateFormat: 'yyyy-MM-dd',
+          timeFormat: 'HH:mm',
+          firstDay: 0
         }
       });
-    });
-
-    observer.observe(stepper, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    }
+  } catch (e) {
+    console.warn('AirDatepicker init failed:', e);
   }
 
-  $('#empBtnBack').css('visibility', 'hidden');
+  function getEmpType() {
+    return $('#empType').val();
+  }
 
+  function applyEmpType() {
+    const type = getEmpType();
+    $('.emp-type-tile').removeClass('active');
+    $('.emp-type-tile[data-type="' + type + '"]').addClass('active');
+
+    $('#empTypeBadge').html(
+      type === 'driver'
+        ? '<i class="ri-steering-2-line me-1"></i> Driver'
+        : '<i class="ri-user-2-line me-1"></i> Assistant'
+    );
+  }
+
+  // Tile click
+  $(document).on('click', '.emp-type-tile', function () {
+    $('#empType').val($(this).data('type'));
+    applyEmpType();
+  });
+
+  // Reset
+  $(document).on('click', '#empBtnReset', function () {
+    $('#empFName, #empLName, #empMI, #empSuffix, #empBirthDate, #empPhoneNumber, #empEmail, #empPassword, #empPasswordConfirm').val('');
+    $('.is-invalid').removeClass('is-invalid');
+    $('#empType').val('driver');
+    applyEmpType();
+  });
+
+  // Show/hide password
+  $(document).on('click', '#togglePassword', function () {
+    const $pwd = $('#empPassword');
+    const isHidden = $pwd.attr('type') === 'password';
+    $pwd.attr('type', isHidden ? 'text' : 'password');
+    $(this).find('i').toggleClass('ri-eye-line', !isHidden).toggleClass('ri-eye-off-line', isHidden);
+  });
+
+  // Register
+  $(document).on('click', '#empBtnRegister', function () {
+    const missing = validateInputs();
+    if (missing.length > 0) {
+      showMissingModal(missing);
+      return;
+    }
+    showConfirmModal();
+  });
+
+  // Init
+  applyEmpType();
+
+
+  // ===== Validation =====
+  function validateInputs() {
+    const missing = [];
+
+    const check = (id, label) => {
+      const $el = $('#' + id);
+      const el = $el[0];
+      if (!el) return;
+      const ok = String($el.val() || '').trim() !== '';
+      if (!ok) {
+        missing.push(label);
+        $el.addClass('is-invalid');
+      } else {
+        $el.removeClass('is-invalid');
+      }
+    };
+
+    check('empFName',         'First Name');
+    check('empLName',         'Last Name');
+    check('empBirthDate',     'Birth Date');
+    check('empPhoneNumber',   'Phone Number');
+    check('empPassword',      'Password');
+    check('empPasswordConfirm', 'Confirm Password');
+
+    // Extra password rules
+    const pwd     = String($('#empPassword').val() || '');
+    const pwdConf = String($('#empPasswordConfirm').val() || '');
+
+    if (pwd && pwd.length < 6) {
+      missing.push('Password (must be at least 6 characters)');
+      $('#empPassword').addClass('is-invalid');
+    }
+    if (pwd && pwdConf && pwd !== pwdConf) {
+      missing.push('Password and Confirm Password must match');
+      $('#empPassword, #empPasswordConfirm').addClass('is-invalid');
+    }
+
+    return missing;
+  }
+
+  function showMissingModal(missing) {
+    const listHtml = '<ul class="text-start mb-0 ps-3">' +
+      missing.map(m => '<li>' + m + '</li>').join('') +
+      '</ul>';
+
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Required Fields',
+      html: '<p class="text-muted mb-2">Please fill in the following fields:</p>' + listHtml,
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#696cff'
+    });
+  }
+
+  function showConfirmModal() {
+    const type = getEmpType();
+    const typeLabel = type === 'driver' ? 'Driver' : 'Assistant';
+    const name = ($('#empFName').val() + ' ' + $('#empLName').val()).trim();
+
+    Swal.fire({
+      icon: 'question',
+      title: 'Confirm Registration',
+      html:
+        '<p class="mb-2">Please review the details before submitting:</p>' +
+        '<div class="text-start bg-light rounded p-3">' +
+          '<div><strong>Role:</strong> ' + typeLabel + '</div>' +
+          '<div><strong>Name:</strong> ' + (name || '—') + '</div>' +
+        '</div>',
+      showCancelButton: true,
+      confirmButtonText: '<i class="ri-check-line"></i> Yes, Register',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#696cff',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) saveEmployee();
+    });
+  }
+
+
+  // ===== Save =====
   function saveEmployee() {
     const formData = new FormData();
     formData.append('empType',        $('#empType').val());
@@ -63,7 +169,8 @@ $(document).ready(function () {
     formData.append('empBirthDate',   $('#empBirthDate').val());
     formData.append('empPhoneNumber', $('#empPhoneNumber').val());
     formData.append('empEmail',       $('#empEmail').val());
-    formData.append('empStatus',      'active'); // auto set
+    formData.append('empPassword',    $('#empPassword').val());
+    formData.append('empStatus',      'active');
 
     $.ajax({
       url: 'ajax/employee_save_record.ajax.php',
@@ -74,23 +181,39 @@ $(document).ready(function () {
       processData: false,
       dataType: 'text',
       success: function (response) {
-        Swal.fire({
-            title: 'Employee registered!',
+        const res = (response || '').trim();
+        if (res === 'existing') {
+          Swal.fire({
+            icon: 'info',
+            title: 'Already Exists',
+            text: 'This employee is already registered.',
+            confirmButtonColor: '#696cff'
+          });
+        } else if (res === '' || res === 'success' || res === '1') {
+          Swal.fire({
             icon: 'success',
-            confirmButtonText: 'OK',
-            customClass: {
-                confirmButton: 'btn btn-success'
-            },
-            buttonsStyling: false
-        }).then(function(result){
-            if(result.value){
-                window.location = "employee-reg";
-            }
-        });
-        
+            title: 'Registered!',
+            text: 'Employee registered successfully.',
+            confirmButtonColor: '#696cff'
+          }).then(() => {
+            window.location = 'employee-reg';
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to save employee.',
+            confirmButtonColor: '#696cff'
+          });
+        }
       },
       error: function () {
-        console.error('Something went wrong.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Network Error',
+          text: 'Something went wrong while saving.',
+          confirmButtonColor: '#696cff'
+        });
       }
     });
   }

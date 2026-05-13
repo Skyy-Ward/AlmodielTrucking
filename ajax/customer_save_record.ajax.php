@@ -29,6 +29,9 @@ class CustomerRegistration {
   public $businessDoc;
   public $otherDocs;
 
+  // Account
+  public $password;
+
   public function saveCustomer() {
     $data = array(
       "customerType"  => $this->customerType,
@@ -39,6 +42,7 @@ class CustomerRegistration {
       "barangay"      => $this->barangay,
       "street"        => $this->street,
       "houseNumber"   => $this->houseNumber,
+      "password"      => password_hash($this->password, PASSWORD_DEFAULT),
     );
 
     if ($this->customerType === 'company') {
@@ -60,6 +64,7 @@ class CustomerRegistration {
 $save_customer = new CustomerRegistration();
 
 $save_customer->customerType  = $_POST["customerType"];
+$save_customer->password      = $_POST["password"] ?? '';
 $save_customer->email         = $_POST["email"];
 $save_customer->phoneNumber   = $_POST["phoneNumber"];
 $save_customer->province      = $_POST["province"];
