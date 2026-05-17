@@ -5,6 +5,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>
+    (function() {
+      var theme = localStorage.getItem('data-bs-theme') || 'light';
+      var sidebar = localStorage.getItem('data-sidebar') || 'default';
+      var sidebarColor = localStorage.getItem('data-sidebar-color') || 'light';
+      var layout = localStorage.getItem('data-layout') || 'vertical';
+      var themeColor = localStorage.getItem('data-theme-colors') || 'default';
+
+      document.documentElement.setAttribute('data-bs-theme', theme);
+      document.documentElement.setAttribute('data-sidebar', sidebar);
+      document.documentElement.setAttribute('data-sidebar-color', sidebarColor);
+      document.documentElement.setAttribute('data-layout', layout);
+      document.documentElement.setAttribute('data-theme-colors', themeColor);
+    })();
+  </script>
   <title>Almodiel Trucking Service </title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta content="Admin & Dashboards Template" name="description" />
@@ -12,6 +27,23 @@
   
   <!-- layout setup -->
   <script type="module" src="views/assets/js/layout-setup.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var theme = localStorage.getItem('data-bs-theme') || 'light';
+      var lightBtn = document.getElementById('lightModeBtn');
+      var darkBtn  = document.getElementById('darkModeBtn');
+
+      if (!lightBtn || !darkBtn) return;
+
+      if (theme === 'dark') {
+        lightBtn.classList.remove('active');
+        darkBtn.classList.add('active');
+      } else {
+        lightBtn.classList.add('active');
+        darkBtn.classList.remove('active');
+      }
+    });
+  </script>
   
   <!-- App favicon -->
   <link rel="shortcut icon" href="views/assets/images/favicon.png">  <!-- Simplebar Css -->
