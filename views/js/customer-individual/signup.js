@@ -3,30 +3,30 @@ $(document).ready(function () {
     function getCustomerType() {
       return "individual";
     }
-  
+
     function applyCustomerType() {
       const type = getCustomerType();
       const isCompany = type === 'company';
-  
+
       $('.cust-type-tile').removeClass('active');
       $('.cust-type-tile[data-type="' + type + '"]').addClass('active');
-  
+
       $('#custTypeBadge').html(
         isCompany
           ? '<i class="ri-building-2-line me-1"></i> Company'
           : '<i class="ri-user-line me-1"></i> Individual'
       );
-  
+
       $('#individualForm').toggleClass('d-none', isCompany);
       $('#companyForm').toggleClass('d-none', !isCompany);
     }
-  
+
     // Tile click → set hidden value + repaint
     $(document).on('click', '.cust-type-tile', function () {
       $('#customerType').val($(this).data('type'));
       applyCustomerType();
     });
-  
+
     // Reset
     $(document).on('click', '#btnResetCustomer', function () {
       $('#individualForm input, #companyForm input').val('');
@@ -35,7 +35,7 @@ $(document).ready(function () {
       $('#customerType').val('individual');
       applyCustomerType();
     });
-  
+
     // Show/hide password
     $(document).on('click', '#toggleCustPassword', function () {
       const $pwd = $('#custPassword');
@@ -43,7 +43,28 @@ $(document).ready(function () {
       $pwd.attr('type', isHidden ? 'text' : 'password');
       $(this).find('i').toggleClass('ri-eye-line', !isHidden).toggleClass('ri-eye-off-line', isHidden);
     });
-  
+    window.addEventListener("message", function (event) {
+    const data = event.data;
+
+    if (!data) return;
+
+    // coordinates
+    if (data.lat) document.getElementById("lat").value = data.lat;
+    if (data.lng) document.getElementById("lng").value = data.lng;
+
+    // address fields
+    if (data.province) document.getElementById("provinceIndiv").value = data.province;
+    if (data.city) document.getElementById("cityIndiv").value = data.city;
+    if (data.barangay) document.getElementById("barangayIndiv").value = data.barangay;
+    if (data.street) document.getElementById("streetIndiv").value = data.street;
+});
+window.openMap = function () {
+    window.open(
+        "http://localhost/AlmodielTrucking-main/views/modules/map.php",
+        "_blank"
+    );
+};
+
     // Register
     $(document).on('click', '#btnRegisterCustomer', function () {
       const missing = validateInputs();
@@ -53,14 +74,14 @@ $(document).ready(function () {
       }
       showConfirmModal();
     });
-  
+
     function showConfirmModal() {
       const isCompany = getCustomerType() === 'company';
       const typeLabel = isCompany ? 'Company' : 'Individual';
       const name = isCompany
         ? $('#companyName').val()
         : ($('#firstName').val() + ' ' + $('#lastName').val());
-  
+
       Swal.fire({
         icon: 'question',
         title: 'Confirm Registration',
@@ -82,15 +103,15 @@ $(document).ready(function () {
         }
       });
     }
-  
+
     // Init
     applyCustomerType();
-  
-  
+
+
     // ===== Validation =====
     function validateInputs() {
       const missing = [];
-  
+
       const check = (id, label) => {
         const $el = $('#' + id);
         const el = $el[0];
@@ -104,21 +125,21 @@ $(document).ready(function () {
           $el.removeClass('is-invalid');
         }
       };
-  
+
       check('firstName',     'First Name');
       check('lastName',      'Last Name');
       check('phoneIndiv',    'Phone Number');
       check('provinceIndiv', 'Province');
       check('cityIndiv',     'City / Municipality');
       check('barangayIndiv', 'Barangay');
-    
+
       // Shared password fields
       check('custPassword',        'Password');
       check('custPasswordConfirm', 'Confirm Password');
-  
+
       const pwd     = String($('#custPassword').val() || '');
       const pwdConf = String($('#custPasswordConfirm').val() || '');
-  
+
       if (pwd && pwd.length < 6) {
         missing.push('Password (must be at least 6 characters)');
         $('#custPassword').addClass('is-invalid');
@@ -127,15 +148,15 @@ $(document).ready(function () {
         missing.push('Password and Confirm Password must match');
         $('#custPassword, #custPasswordConfirm').addClass('is-invalid');
       }
-  
+
       return missing;
     }
-  
+
     function showMissingModal(missing) {
       const listHtml = '<ul class="text-start mb-0 ps-3">' +
         missing.map(m => '<li>' + m + '</li>').join('') +
         '</ul>';
-  
+
       Swal.fire({
         icon: 'warning',
         title: 'Missing Required Fields',
@@ -144,8 +165,8 @@ $(document).ready(function () {
         confirmButtonColor: '#696cff'
       });
     }
-  
-  
+
+
     // ===== Save =====
     function saveCustomer() {
       const isCompany = getCustomerType() === 'company';
@@ -162,7 +183,7 @@ $(document).ready(function () {
       formData.append('barangay',      $('#barangayIndiv').val());
       formData.append('street',        $('#streetIndiv').val());
       formData.append('houseNumber',   $('#houseIndiv').val());
-    
+
 
       $.ajax({
         url: '/almodieltrucking/ajax/customer_save_record.ajax.php',
@@ -207,6 +228,5 @@ $(document).ready(function () {
         }
       });
     }
-  
+
   });
-  

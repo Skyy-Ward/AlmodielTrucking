@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
@@ -74,6 +76,13 @@
               <h6 class="text-uppercase text-muted mb-3">
                 <i class="ri-map-pin-line me-1"></i> Address
               </h6>
+              <input type="hidden" id="lat" name="lat">
+              <input type="hidden" id="lng" name="lng">
+            <button type="button" class="btn btn-primary btn-sm"
+                onclick="openMap()">
+                Open Map
+            </button>
+            <div id="map" style="height:300px; display:none; margin-top:10px;"></div>
               <div class="row">
                 <div class="col-12 col-md-6 mb-3">
                   <label class="form-label">Province <span class="text-danger">*</span></label>
@@ -158,7 +167,7 @@
     </div>
   </div>
 </div>
-
+<script src="/AlmodielTrucking-main/views/js/customer-individual/signup.js"></script>
 
 <style>
   .cust-type-tile {
